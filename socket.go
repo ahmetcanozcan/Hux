@@ -1,6 +1,9 @@
 package sergo
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -12,24 +15,22 @@ type Socket struct {
 }
 
 func newSocket(c *websocket.Conn) *Socket {
-	return &Socket{
+	s := &Socket{
 		events: make(map[string]chan string),
 		conn:   c,
 	}
+	return s
 }
 
 func (s *Socket) handleClientMessage(rawStr string) {
 	name, message, ok := parseRawMessage(rawStr)
 	if !ok {
+		log.Println("Invalid Text", rawStr)
 		return
 	}
-
-	ch, ok := s.events[name]
-	// if event handler channel exists, send message to the channel
-	if !ok {
-		ch <- message
-	}
-
+	ch := s.GetEvent(name)
+	fmt.Println("name: ", name, "message: ", message, "ch", ch)
+	ch <- message
 }
 
 // Join :
@@ -38,9 +39,7 @@ func (s *Socket) Join(r *Room) {
 	if s.room != nil {
 		delete(s.room.sockets, s)
 	}
-	s.room = r
-	r.sockets[s] = true
-
+	r.Add(s)
 }
 
 //GetEvent :

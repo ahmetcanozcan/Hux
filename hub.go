@@ -1,6 +1,7 @@
 package sergo
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -19,7 +20,10 @@ var upgrader = websocket.Upgrader{} // Create upgrader with default values.
 // NewHub :
 func NewHub() *Hub {
 	// Instantiating.
-	hub := &Hub{}
+	hub := &Hub{
+		SocketConnection:    make(chan *Socket),
+		SocketDisconnection: make(chan *Socket),
+	}
 	hub.rooms = make(map[string]*Room)
 	hub.rooms["main"] = NewRoom()
 	// Handle request.
@@ -29,12 +33,14 @@ func NewHub() *Hub {
 			log.Print("upgrade:", err)
 		}
 
-		socket := newSocket(c)
 		// Make sure closing socket
 		defer func() {
-			hub.SocketDisconnection <- socket
+			fmt.Println("Connectino closed")
 			c.Close()
 		}()
+
+		socket := newSocket(c)
+		hub.SocketConnection <- socket
 
 		for {
 			_, message, err := c.ReadMessage()
@@ -42,7 +48,7 @@ func NewHub() *Hub {
 				log.Println("read:", err)
 				break
 			}
-			log.Println("recv:", message)
+			log.Println("recv:", string(message))
 			socket.handleClientMessage(string(message))
 		}
 
