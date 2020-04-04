@@ -1,0 +1,6 @@
+language: go 
+
+go_import_path: github.com/ahmetcanozcan/hux
+
+gobuild_args: -timeout 30s 
+
