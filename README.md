@@ -1,9 +1,8 @@
 <p align="center">
-  <a href="https://nodejs.org/">
+  <a ">
     <img
-      alt="Node.js"
       src="http://ahmetcanozcan.github.io/assets/img/huxlogo.png"
-      width="400"
+      width="300"
     />
   </a>
 </p>
