@@ -1,7 +1,12 @@
-
-![Test Automation](http://ahmetcanozcan.github.io/assets/img/huxlogo.png)
-
-
+<p align="center">
+  <a href="https://nodejs.org/">
+    <img
+      alt="Node.js"
+      src="http://ahmetcanozcan.github.io/assets/img/huxlogo.png"
+      width="400"
+    />
+  </a>
+</p>
 Hux is a channel based event abstraction for web-sockets
 
 ## Installation
