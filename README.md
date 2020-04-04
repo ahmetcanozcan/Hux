@@ -1,4 +1,7 @@
-# Hux
+<p style="text-align:center">
+<img  src="http://ahmetcanozcan.github.io/assets/img/huxlogo.png">
+
+</p>
 ---
 
 Hux is a channel based event abstraction for web-sockets
