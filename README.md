@@ -1,8 +1,9 @@
-<p style="text-align:center">
-<img  src="http://ahmetcanozcan.github.io/assets/img/huxlogo.png">
+<span style="display:block;text-align:center">
 
-</p>
----
+![Test Automation](http://ahmetcanozcan.github.io/assets/img/huxlogo.png)
+
+</span>
+
 
 Hux is a channel based event abstraction for web-sockets
 
@@ -18,7 +19,7 @@ go get -u github.com/ahmetcanozcan/hux
 
 Hux provides both server-side and client-side libraries.
 
-In your go file add this blocks
+In your go file, add these blocks
 ```go
 
 
