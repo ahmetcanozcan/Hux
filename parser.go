@@ -1,4 +1,4 @@
-package sergo
+package hux
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-module github.com/ahmetcanozcan/Sergo
+module github.com/ahmetcanozcan/hux
 
 go 1.14
 

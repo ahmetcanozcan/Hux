@@ -1,7 +1,6 @@
-package sergo
+package hux
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -17,35 +16,53 @@ type Hub struct {
 
 var upgrader = websocket.Upgrader{} // Create upgrader with default values.
 
-// NewHub :
-func NewHub() *Hub {
-	// Instantiating.
-	hub := &Hub{
+// Configs :
+var Configs = struct {
+	URL             string
+	DefaultRoomName string
+}{
+	URL:             "/ws/hux",
+	DefaultRoomName: "main",
+}
+
+var (
+	hub = &Hub{
+		rooms:               make(map[string]*Room),
 		SocketConnection:    make(chan *Socket),
 		SocketDisconnection: make(chan *Socket),
 	}
-	hub.rooms = make(map[string]*Room)
-	hub.rooms["main"] = NewRoom()
-	// Handle request.
-	http.HandleFunc("/ws/sergo", func(w http.ResponseWriter, r *http.Request) {
+)
+
+// GetHub :
+func GetHub() *Hub {
+	return hub
+}
+
+// Initialize :
+func Initialize() {
+
+	// Create default Room
+	hub.rooms[Configs.DefaultRoomName] = NewRoom()
+	// Set handle function
+	http.HandleFunc(Configs.URL, func(w http.ResponseWriter, r *http.Request) {
+		// Get websocket connection 'c'
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Print("upgrade:", err)
+			log.Print("upgrade err:", err)
 		}
 
-		// Make sure closing socket
-		defer func() {
-			fmt.Println("Connectino closed")
-			c.Close()
-		}()
-
 		socket := newSocket(c)
+
+		// Add socket to main room by default
+		socket.Join(hub.rooms[Configs.DefaultRoomName])
+		// Send socket connection signal
 		hub.SocketConnection <- socket
 
+		// Make sure closing socket
+		defer socket.Disconnect()
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
 				break
 			}
 			log.Println("recv:", string(message))
@@ -53,5 +70,4 @@ func NewHub() *Hub {
 		}
 
 	})
-	return hub
 }

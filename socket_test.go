@@ -1,51 +1,50 @@
-package sergo
+package hux
 
 import (
 	"testing"
 )
 
-func TestBasicEvent(t *testing.T){
-		// Create socket
-		s := newSocket(nil)
-		done := make(chan bool)
+func TestBasicEvent(t *testing.T) {
+	// Create socket
+	s := newSocket(nil)
+	done := make(chan bool)
 
-		go func(){
-			msg := <-s.GetEvent("foo")
-			t.Log(msg)
-			done<-true
-		}()
+	go func() {
+		msg := <-s.GetEvent("foo")
+		t.Log(msg)
+		done <- true
+	}()
 
-		s.GetEvent("foo")<-"Hi"
-		<-done
-		
+	s.GetEvent("foo") <- "Hi"
+	<-done
+
 }
 
 func TestEventsWithSelect(t *testing.T) {
 	done := make(chan bool)
 	s := newSocket(nil)
 
-	go func(){
-		for i := 0; i<3; {
-			select{
-			case msg := <- s.GetEvent("foo"):
-				t.Log("foo:",msg)
+	go func() {
+		for i := 0; i < 3; {
+			select {
+			case msg := <-s.GetEvent("foo"):
+				t.Log("foo:", msg)
 				i++
-			case msg := <- s.GetEvent("bar"):
-				t.Log("bar:",msg)
+			case msg := <-s.GetEvent("bar"):
+				t.Log("bar:", msg)
 				i++
-			case msg := <- s.GetEvent("joe"):
-				t.Log("joe:",msg)
+			case msg := <-s.GetEvent("joe"):
+				t.Log("joe:", msg)
 				i++
 			default:
 				continue
 			}
 		}
-		done<-true
+		done <- true
 	}()
-	s.GetEvent("foo")<-"hi"
-	s.GetEvent("bar")<-"hi"
-	s.GetEvent("joe")<-"hi"
-	
+	s.GetEvent("foo") <- "hi"
+	s.GetEvent("bar") <- "hi"
+	s.GetEvent("joe") <- "hi"
 
 	<-done
 }

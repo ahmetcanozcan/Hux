@@ -1,4 +1,4 @@
-package sergo
+package hux
 
 // Room :
 type Room struct {
@@ -11,20 +11,24 @@ type Room struct {
 func NewRoom() *Room {
 	r := &Room{
 		sockets: make(map[*Socket]bool),
+		joinCh:  make(chan *Socket),
+		leaveCh: make(chan *Socket),
 	}
 	go r.run()
 	return r
 }
 
 func (r *Room) run() {
-	select {
-	case sckt := <-r.joinCh:
-		r.sockets[sckt] = true
-	case sckt := <-r.leaveCh:
-		delete(r.sockets, sckt)
+	for {
+		select {
+		case sckt := <-r.joinCh:
+			r.sockets[sckt] = true
+		case sckt := <-r.leaveCh:
+			delete(r.sockets, sckt)
 
-	default:
+		default:
 
+		}
 	}
 }
 
@@ -39,7 +43,7 @@ func (r *Room) Remove(s *Socket) {
 }
 
 //Emit :
-func (r Room) Emit(name string, data string) {
+func (r *Room) Emit(name string, data string) {
 	for sck := range r.sockets {
 		sck.Emit(name, data)
 	}

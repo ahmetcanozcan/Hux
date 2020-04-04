@@ -1,7 +1,6 @@
-package sergo
+package hux
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -11,6 +10,7 @@ import (
 type Socket struct {
 	events map[string]chan string
 	conn   *websocket.Conn
+	emitCh chan string
 	room   *Room
 }
 
@@ -18,8 +18,20 @@ func newSocket(c *websocket.Conn) *Socket {
 	s := &Socket{
 		events: make(map[string]chan string),
 		conn:   c,
+		emitCh: make(chan string),
 	}
+	go s.run()
 	return s
+}
+
+func (s *Socket) run() {
+	for {
+		select {
+		case msg := <-s.emitCh:
+			s.conn.WriteMessage(websocket.BinaryMessage, []byte(msg))
+		}
+	}
+
 }
 
 func (s *Socket) handleClientMessage(rawStr string) {
@@ -29,7 +41,6 @@ func (s *Socket) handleClientMessage(rawStr string) {
 		return
 	}
 	ch := s.GetEvent(name)
-	fmt.Println("name: ", name, "message: ", message, "ch", ch)
 	ch <- message
 }
 
@@ -37,9 +48,16 @@ func (s *Socket) handleClientMessage(rawStr string) {
 func (s *Socket) Join(r *Room) {
 	// If have a room then disconnect from it
 	if s.room != nil {
-		delete(s.room.sockets, s)
+		s.LeaveRoom()
 	}
 	r.Add(s)
+}
+
+// LeaveRoom :
+func (s *Socket) LeaveRoom() {
+	s.room.Remove(s)
+	s.room = nil
+
 }
 
 //GetEvent :
@@ -55,7 +73,7 @@ func (s *Socket) GetEvent(name string) chan string {
 // Emit :
 func (s *Socket) Emit(name string, data string) {
 	msg := stringifyMessage(name, data)
-	s.conn.WriteMessage(websocket.BinaryMessage, []byte(msg))
+	s.emitCh <- msg
 }
 
 // Broadcast :
@@ -66,5 +84,9 @@ func (s *Socket) Broadcast(name string, data string) {
 			sck.Emit(name, data)
 		}
 	}
+}
 
+// Disconnect :
+func (s *Socket) Disconnect() {
+	hub.SocketDisconnection <- s
 }
