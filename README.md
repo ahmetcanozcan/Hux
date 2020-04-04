@@ -6,7 +6,7 @@ Hux is a channel based event abstraction for web-sockets
 
 ## Installation
 
-Use `go get` commadn to install  Hux
+Use `go get`  to install  Hux
 
 ```bash
 go get -u github.com/ahmetcanozcan/hux
