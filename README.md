@@ -1,15 +1,12 @@
-<span style="display:block;text-align:center">
 
 ![Test Automation](http://ahmetcanozcan.github.io/assets/img/huxlogo.png)
-
-</span>
 
 
 Hux is a channel based event abstraction for web-sockets
 
 ## Installation
 
-Use the `go get` install the Hux
+Use `go get` commadn to install  Hux
 
 ```bash
 go get -u github.com/ahmetcanozcan/hux
