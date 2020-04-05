@@ -7,7 +7,7 @@
   </a>
 </p>
 
-[![CircleCI](https://img.shields.io/circleci/build/github/circleci/circleci-docs?style=flat-square)](http://https://circleci.com/gh/ahmetcanozcan/hux) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ahmetcanozcan/hux?style=flat-square) ![Codacy grade](https://img.shields.io/codacy/grade/2b1934e3704e44069f7a5c6e89afeca0?style=flat-square)
+[![CircleCI](https://img.shields.io/circleci/build/github/circleci/circleci-docs?style=flat-square)](https://circleci.com/gh/ahmetcanozcan/hux) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ahmetcanozcan/hux?style=flat-square) ![Codacy grade](https://img.shields.io/codacy/grade/2b1934e3704e44069f7a5c6e89afeca0?style=flat-square)
 
 Hux is a channel based event abstraction for web-sockets
 
@@ -24,28 +24,27 @@ go get -u github.com/ahmetcanozcan/hux
 Hux provides both server-side and client-side libraries.
 
 In your go file, add these blocks
+
 ```go
 
 
 // blocks of code
 func main() {
-  // block of codes
+  // blocks of code
   hux.Initialize() // Initialize hux
-  go handleHub() // Then start handling sockets in another goroutine
-  http.ListenAndServe(":8080", nil)
-}
-
-func handleHub() {
-  h := hux.GetHub() // Get main hub.
-  for {
-    select {
-    //When a web socket connected, this block executes
-    case sck := <-h.SocketConnection: 
-      go handleSocket(sck)//Handle socket
-    case sck := <-h.SocketDisconnection:
-      go handleDisconnection(sck)
-    }
+  h := hux.GetHub()
+  go func(){ // Handle hub
+    for {
+      select {
+      //When a web socket connected, this block executes
+      case sck := <-h.SocketConnection: 
+        go handleSocket(sck)//Handle socket
+      case sck := <-h.SocketDisconnection:
+        go handleDisconnection(sck)
+      }
   }
+  }()
+  http.ListenAndServe(":8080", nil)
 }
 
 // blocks of code
@@ -85,11 +84,12 @@ func handleSocket(sck *hux.Socket) {
 </script>
 ```
 
-
 ## Contributing
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
 ## License
+
 [MIT](https://choosealicense.com/licenses/mit/)
