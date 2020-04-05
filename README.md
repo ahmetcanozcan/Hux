@@ -6,6 +6,9 @@
     />
   </a>
 </p>
+
+[![CircleCI](https://img.shields.io/circleci/build/github/circleci/circleci-docs?style=flat-square)](http://https://circleci.com/gh/ahmetcanozcan/hux) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ahmetcanozcan/hux?style=flat-square) ![Codacy grade](https://img.shields.io/codacy/grade/2b1934e3704e44069f7a5c6e89afeca0?style=flat-square)
+
 Hux is a channel based event abstraction for web-sockets
 
 ## Installation
