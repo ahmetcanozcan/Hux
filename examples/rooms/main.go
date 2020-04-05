@@ -32,11 +32,13 @@ func main() {
 }
 
 func handleSocket(s *hux.Socket){
-	select {
-	case roomName :=<-s.GetEvent("Join"):
-		r := hux.GetHub().GetRoom(roomName)
-		s.Join(r)
-		r.Emit("New","New Socket Connected")
-		
+	for {
+		select {
+		case roomName :=<-s.GetEvent("Join"):
+			r := hux.GetHub().GetRoom(roomName)
+			s.Join(r)
+			r.Emit("New","New Socket Connected")
+			
+		}
 	}
 }
