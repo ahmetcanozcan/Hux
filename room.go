@@ -1,5 +1,7 @@
 package hux
 
+import "fmt"
+
 // Room :
 type Room struct {
 	sockets map[*Socket]bool
@@ -42,9 +44,10 @@ func (r *Room) Remove(s *Socket) {
 	r.leaveCh <- s
 }
 
-//Emit :
+// Emit :
 func (r *Room) Emit(name string, data string) {
 	for sck := range r.sockets {
+		fmt.Println("Send msg")
 		sck.Emit(name, data)
 	}
 }

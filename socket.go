@@ -50,6 +50,7 @@ func (s *Socket) Join(r *Room) {
 	if s.room != nil {
 		s.LeaveRoom()
 	}
+	s.room = r
 	r.Add(s)
 }
 

@@ -48,3 +48,31 @@ func TestEventsWithSelect(t *testing.T) {
 
 	<-done
 }
+
+func TestSocketJoin(t *testing.T) {
+	// Create room
+	room := NewRoom()
+	s := &Socket{
+		events: make(map[string]chan string),
+		conn:   nil,
+		room:   nil,
+		emitCh: make(chan string),
+	}
+
+	s.Join(room)
+
+	if room != s.room {
+		t.Error("expect:", room, "found: ", s.room)
+	}
+
+	haveSck := false
+	for sck := range room.sockets {
+		if sck == s {
+			haveSck = true
+		}
+	}
+	// if socket is not in the room.sockets
+	if !haveSck {
+		t.Error("Socket not in room.sockets")
+	}
+}

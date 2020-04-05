@@ -1,13 +1,17 @@
 package hux
 
-import "testing"
+import (
+	"testing"
+)
+
+const sckCount = 1
 
 func TestJoin(t *testing.T) {
 
 	// Create a room
 	room := NewRoom()
 	// Try to join the room concurently
-	for i := 0; i < 30; i++ {
+	for i := 0; i < sckCount; i++ {
 		go func() {
 			sck := newSocket(nil)
 			sck.Join(room)
@@ -21,7 +25,7 @@ func TestLeave(t *testing.T) {
 	// Create a room
 	room := NewRoom()
 	// Add sockets to the room
-	for i := 0; i < 30; i++ {
+	for i := 0; i < sckCount; i++ {
 		room.Add(newSocket(nil))
 	}
 
