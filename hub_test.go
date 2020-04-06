@@ -10,20 +10,26 @@ import (
 )
 
 func TestSocketConnection(t *testing.T) {
-	done := make(chan bool)
-	// Listen a socket connected or not
-	go func() {
+
+	done := make(chan string)
+	//Create a new hub
+	hub := NewHub()
+	testMsg := "test-data"
+	http.HandleFunc("/ws/hux", func(w http.ResponseWriter, r *http.Request) {
+		socket, err := GenerateSocket(w, r)
+		hub.GetRoom("main").Add(socket)
+		if err != nil {
+			t.FailNow()
+		}
 		for {
 			select {
-			case sck := <-hub.SocketConnection:
-				done <- true
-				_ = <-sck.GetEvent("Test")
-				done <- true
-			case <-hub.SocketDisconnection:
-				done <- true
+			case msg := <-socket.GetEvent("Test"):
+				done <- msg
 			}
+
 		}
-	}()
+	})
+
 	// listen port
 	go http.ListenAndServe(":8080", nil)
 
@@ -36,12 +42,11 @@ func TestSocketConnection(t *testing.T) {
 			log.Fatal("dial:", err)
 		}
 		defer c.Close()
-		c.WriteMessage(websocket.BinaryMessage, []byte(stringifyMessage("Test", "test-data")))
+		c.WriteMessage(websocket.BinaryMessage, []byte(stringifyMessage("Test", testMsg)))
 	}()
 
-	<-done // Wait for connection
-	<-done // Wait for Test message
-	<-done // Wait for disconnection
-
-	// if done channel gets signal three times in 30 seconds, test is passed
+	msg := <-done // Wait for Test message
+	if msg != testMsg {
+		t.FailNow()
+	}
 }

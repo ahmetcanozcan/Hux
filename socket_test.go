@@ -4,9 +4,37 @@ import (
 	"testing"
 )
 
+type TestConnection struct {
+	msg string
+	w   chan bool
+}
+
+func newTestConnection(m string) *TestConnection {
+	return &TestConnection{
+		msg: m,
+		w:   make(chan bool),
+	}
+}
+
+func (te *TestConnection) WriteMessage(int, []byte) error {
+	<-te.w
+	return nil
+}
+
+func (te *TestConnection) ReadMessage() (int, []byte, error) {
+	<-te.w
+	return 0, []byte(te.msg), nil
+}
+
 func TestBasicEvent(t *testing.T) {
 	// Create socket
-	s := newSocket(nil)
+	s := &Socket{
+		events: make(map[string]chan string),
+		conn:   nil,
+		room:   nil,
+		emitCh: make(chan string),
+	}
+
 	done := make(chan bool)
 
 	go func() {
@@ -22,7 +50,12 @@ func TestBasicEvent(t *testing.T) {
 
 func TestEventsWithSelect(t *testing.T) {
 	done := make(chan bool)
-	s := newSocket(nil)
+	s := &Socket{
+		events: make(map[string]chan string),
+		conn:   nil,
+		room:   nil,
+		emitCh: make(chan string),
+	}
 
 	go func() {
 		for i := 0; i < 3; {

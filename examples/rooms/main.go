@@ -8,36 +8,26 @@ import (
 )
 
 func main() {
+	hub := hux.NewHub()
 	fs := http.FileServer(http.Dir("./"))
 	http.Handle("/", fs)
-
-	// Get hub
-	hub := hux.GetHub()
-	// Handle hub
-	go func() {
+	http.HandleFunc("/ws/hux", func(w http.ResponseWriter, r *http.Request) {
+		socket, err := hux.GenerateSocket(w, r)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("New Socket Connected.")
 		for {
 			select {
-			case sck := <-hub.SocketConnection:
-				fmt.Println("Socket connected.")
-				go handleSocket(sck)
-			case <-hub.SocketDisconnection:
-				fmt.Println("Socket disconnected.")
+			case msg := <-socket.GetEvent("Join"):
+				fmt.Println("Join:", msg)
+				hub.GetRoom(msg).Add(socket)
+				hub.GetRoom(msg).Emit("New", "NEW SOCKET CONNECTED.")
+
 			}
 		}
-	}()
-
+	})
 	// Start listening port
 	http.ListenAndServe(":8080", nil)
-}
-
-func handleSocket(s *hux.Socket) {
-	for {
-		select {
-		case roomName := <-s.GetEvent("Join"):
-			r := hux.GetHub().GetRoom(roomName)
-			s.Join(r)
-			r.Emit("New", "New Socket Connected")
-
-		}
-	}
 }

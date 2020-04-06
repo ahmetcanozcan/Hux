@@ -9,66 +9,71 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/github/circleci/circleci-docs?style=flat-square)](https://circleci.com/gh/ahmetcanozcan/hux) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ahmetcanozcan/hux?style=flat-square) ![Codacy grade](https://img.shields.io/codacy/grade/2b1934e3704e44069f7a5c6e89afeca0?style=flat-square)
 
-Hux is a channel based event abstraction for web-sockets
+Hux is a channel and event based websocket manager
 
 ## Installation
 
 Use `go get`  to install  Hux
 
 ```bash
-go get -u github.com/ahmetcanozcan/hux
+go get  github.com/ahmetcanozcan/hux
 ```
 
 ## Usage
 
 Hux provides both server-side and client-side libraries.
 
-In your go file, add these blocks
-
+Firstly import hux
 ```go
-
-
-// blocks of code
-func main() {
-  // blocks of code
-  hux.Initialize() // Initialize hux
-  h := hux.GetHub()
-  go func(){ // Handle hub
-    for {
-      select {
-      //When a web socket connected, this block executes
-      case sck := <-h.SocketConnection: 
-        go handleSocket(sck)//Handle socket
-      case sck := <-h.SocketDisconnection:
-        go handleDisconnection(sck)
-      }
-  }
-  }()
-  http.ListenAndServe(":8080", nil)
-}
-
-// blocks of code
-
-func handleSocket(sck *hux.Socket) {
-  fmt.Println("Socket connected.")
-  for {
-    select {
-    // When the socket sends Hello event,
-    // this block will be executed
-    case data := <-sck.GetEvent("Hello"):
-      fmt.Println(data) // Print data
-      sck.Emit("Hello", "Hello There!")//Send response to client
-    }
-  }
-}
-
+import (
+  // Other libraries
+  "github.com/ahmetcanozcan/hux"
+)
 
 ```
 
-```html
+Then create a hub to manage rooms and sockets in main function.
+```go
+hub :=  hux.NewHub()
+```
 
-<!-- Add this block before your script -->
+Now, add a http handler 
+```go
+http.HandleFunc("/ws/hux", func(w http.ResponseWriter, r *http.Request) {
+    //Generate Socket
+    socket, err := hux.GenerateSocket(w, r)
+-    for {
+      select {
+      //Listen a event
+      case msg := <-socket.GetEvent("Hello"):
+        fmt.Println("GOT:", msg)
+      }
+    }
+})
+
+```
+you can add more event handler using `case`
+
+```go
+case msg := <-socket.GetEvent("Join"):
+      fmt.Println("Join:", msg)
+      hub.GetRoom(msg).Add(socket)
+      hub.GetRoom(msg).Emit("New", "NEW SOCKET CONNECTED.")
+```
+
+Start listening 
+```go
+http.ListenAndServe(":8080",nil)
+```
+On client-side, hux provides a library too.
+Firstly add this script block before your  code
+
+```html
 <script src="https://unpkg.com/hux-client@1.0.0/hux.minifiy.js"></script>
+```
+
+Then, you can write your client-side code like this:
+```html
 <script>
   //Initialize hux 
   var hux = new Hux();
@@ -76,7 +81,7 @@ func handleSocket(sck *hux.Socket) {
   hux.on('open', () => {
   console.log('Connection established');
     // Listen hello events from server
-    hux.on("Hello", () => console.log("GOT MESSAGE"));
+    hux.on("World", () => console.log("GOT MESSAGE"));
     // Send Hello message to server
     hux.emit("Hello", "Hi");
 

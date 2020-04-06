@@ -1,18 +1,27 @@
 package hux
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/gorilla/websocket"
 )
+
+// ConnReaderWriter :
+type ConnReaderWriter interface {
+	WriteMessage(int, []byte) error
+	ReadMessage() (int, []byte, error)
+}
 
 //Socket : Socket is a websocket conection handler
 type Socket struct {
 	events map[string]chan string
-	conn   *websocket.Conn
+	conn   ConnReaderWriter
 	emitCh chan string
 	room   *Room
 }
 
-func newSocket(c *websocket.Conn) *Socket {
+func newSocket(c ConnReaderWriter) *Socket {
 	s := &Socket{
 		events: make(map[string]chan string),
 		conn:   c,
@@ -23,13 +32,30 @@ func newSocket(c *websocket.Conn) *Socket {
 }
 
 func (s *Socket) run() {
-	for {
-		select {
-		case msg := <-s.emitCh:
-			s.conn.WriteMessage(websocket.BinaryMessage, []byte(msg))
+	go func() {
+		for {
+			select {
+			case msg := <-s.emitCh:
+				s.conn.WriteMessage(websocket.BinaryMessage, []byte(msg))
+			}
 		}
-	}
-
+	}()
+	go func() {
+		for {
+			msg, err := s.readMessage()
+			if err != nil {
+				// if err not a connection close then log it.
+				if err != websocket.ErrCloseSent {
+					log.Println(ErrRead, err)
+				}
+				break
+			}
+			er := s.handleClientMessage(msg)
+			if er != nil {
+				log.Println(err)
+			}
+		}
+	}()
 }
 
 func (s *Socket) handleClientMessage(rawStr string) error {
@@ -89,5 +115,21 @@ func (s *Socket) Broadcast(name string, data string) {
 
 // Disconnect : Close connection
 func (s *Socket) Disconnect() {
-	hub.SocketDisconnection <- s
+	s.GetEvent("Disonnection") <- ""
+}
+
+func (s *Socket) readMessage() (string, error) {
+	_, msg, err := s.conn.ReadMessage()
+	return string(msg), err
+}
+
+// GenerateSocket :
+func GenerateSocket(w http.ResponseWriter, r *http.Request) (*Socket, error) {
+	conn, err := Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return nil, err
+	}
+	s := newSocket(conn)
+	return s, nil
+
 }
