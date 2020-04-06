@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-const sckCount = 1
+const sckCount = 50
 
 func TestJoin(t *testing.T) {
 

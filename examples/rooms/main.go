@@ -3,21 +3,21 @@ package main
 import (
 	"fmt"
 	"net/http"
+
 	"github.com/ahmetcanozcan/hux"
 )
 
 func main() {
 	fs := http.FileServer(http.Dir("./"))
-	http.Handle("/",fs)
-	//Initialize hux
-	hux.Initialize()
+	http.Handle("/", fs)
+
 	// Get hub
 	hub := hux.GetHub()
 	// Handle hub
-	go func(){
+	go func() {
 		for {
-			select{
-			case sck :=<-hub.SocketConnection:
+			select {
+			case sck := <-hub.SocketConnection:
 				fmt.Println("Socket connected.")
 				go handleSocket(sck)
 			case <-hub.SocketDisconnection:
@@ -30,14 +30,14 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func handleSocket(s *hux.Socket){
+func handleSocket(s *hux.Socket) {
 	for {
 		select {
-		case roomName :=<-s.GetEvent("Join"):
+		case roomName := <-s.GetEvent("Join"):
 			r := hux.GetHub().GetRoom(roomName)
 			s.Join(r)
-			r.Emit("New","New Socket Connected")
-			
+			r.Emit("New", "New Socket Connected")
+
 		}
 	}
 }

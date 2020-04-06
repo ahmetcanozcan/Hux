@@ -10,7 +10,6 @@ import (
 func main() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
-	hux.Initialize()
 	go handleHub()
 	err := http.ListenAndServe(":8080", nil)
 	fmt.Println(err)

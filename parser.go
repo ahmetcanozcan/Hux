@@ -1,18 +1,22 @@
 package hux
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
 
 const messageSeperator = "]];|;[["
 
-func parseRawMessage(rawMsg string) (string, string, bool) {
+// ErrParse :
+var ErrParse error = errors.New("parse : string cannot parsed")
+
+func parseRawMessage(rawMsg string) (string, string, error) {
 	sarr := strings.Split(rawMsg, messageSeperator)
 	if len(sarr) != 2 {
-		return "", "", false
+		return "", "", ErrParse
 	}
-	return sarr[0], sarr[1], true
+	return sarr[0], sarr[1], nil
 }
 
 func stringifyMessage(name string, data string) string {

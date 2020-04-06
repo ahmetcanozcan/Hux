@@ -1,15 +1,13 @@
 package hux
 
-import "fmt"
-
-// Room :
+// Room : a Room is  a socket group
 type Room struct {
 	sockets map[*Socket]bool
 	joinCh  chan *Socket
 	leaveCh chan *Socket
 }
 
-// NewRoom :
+// NewRoom : Instantiate a new room
 func NewRoom() *Room {
 	r := &Room{
 		sockets: make(map[*Socket]bool),
@@ -27,27 +25,25 @@ func (r *Room) run() {
 			r.sockets[sckt] = true
 		case sckt := <-r.leaveCh:
 			delete(r.sockets, sckt)
-
 		default:
 
 		}
 	}
 }
 
-//Add :
+//Add : add a socket to the room
 func (r *Room) Add(s *Socket) {
 	r.joinCh <- s
 }
 
-// Remove :
+// Remove : remove a socket from the room
 func (r *Room) Remove(s *Socket) {
 	r.leaveCh <- s
 }
 
-// Emit :
+// Emit : emit message to all sockets in the room
 func (r *Room) Emit(name string, data string) {
 	for sck := range r.sockets {
-		fmt.Println("Send msg")
 		sck.Emit(name, data)
 	}
 }

@@ -11,7 +11,6 @@ import (
 
 func TestSocketConnection(t *testing.T) {
 	done := make(chan bool)
-	Initialize() // Initialize the app
 	// Listen a socket connected or not
 	go func() {
 		for {
