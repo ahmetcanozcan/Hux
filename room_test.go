@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-const sckCount = 50
+const sckCount = 15
 
 func TestJoin(t *testing.T) {
 
@@ -13,7 +13,7 @@ func TestJoin(t *testing.T) {
 	// Try to join the room concurently
 	for i := 0; i < sckCount; i++ {
 		go func() {
-			sck := newSocket(newTestConnection(""))
+			sck := newTestSocket()
 			sck.Join(room)
 		}()
 	}
@@ -26,7 +26,7 @@ func TestLeave(t *testing.T) {
 	room := NewRoom()
 	// Add sockets to the room
 	for i := 0; i < sckCount; i++ {
-		room.Add(newSocket(newTestConnection("")))
+		room.Add(newTestSocket())
 	}
 
 	for sck := range room.sockets {

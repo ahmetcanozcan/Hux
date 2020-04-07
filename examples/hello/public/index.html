@@ -8,14 +8,15 @@
 </head>
 
 <body>
-  <script src="https://unpkg.com/hux-client@1.0.0/hux.minifiy.js"></script>
+  <script src="https://unpkg.com/hux-client@1.0.1/hux.minifiy.js"></script>
   <script>
     var hux = new Hux("ws://localhost:8080/ws/hux");
     hux.on('open', () => {
       console.log('Connection established');
-      hux.on("Hello", () => console.log("GOT MESSAGE"));
+      //  hux.on("Hello", () => console.log("GOT MESSAGE"));
+      hux.on("Sum", data => console.log("Sum is:", data))
       hux.emit("Hello", "Hi");
-
+      hux.emit("Sum", { nums: [5, 4, 2, 3, 1, 1, 2, 3] })
     })
   </script>
 </body>

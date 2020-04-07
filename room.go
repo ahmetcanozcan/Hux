@@ -42,7 +42,7 @@ func (r *Room) Remove(s *Socket) {
 }
 
 // Emit : emit message to all sockets in the room
-func (r *Room) Emit(name string, data string) {
+func (r *Room) Emit(name string, data interface{}) {
 	for sck := range r.sockets {
 		sck.Emit(name, data)
 	}

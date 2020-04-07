@@ -4,32 +4,19 @@ import (
 	"testing"
 )
 
-type TestConnection struct {
-	msg string
-	w   chan bool
-}
-
-func newTestConnection(m string) *TestConnection {
-	return &TestConnection{
-		msg: m,
-		w:   make(chan bool),
+func newTestSocket() *Socket {
+	return &Socket{
+		events: make(map[string]Event),
+		conn:   nil,
+		room:   nil,
+		emitCh: make(chan string),
 	}
-}
-
-func (te *TestConnection) WriteMessage(int, []byte) error {
-	<-te.w
-	return nil
-}
-
-func (te *TestConnection) ReadMessage() (int, []byte, error) {
-	<-te.w
-	return 0, []byte(te.msg), nil
 }
 
 func TestBasicEvent(t *testing.T) {
 	// Create socket
 	s := &Socket{
-		events: make(map[string]chan string),
+		events: make(map[string]Event),
 		conn:   nil,
 		room:   nil,
 		emitCh: make(chan string),
@@ -51,7 +38,7 @@ func TestBasicEvent(t *testing.T) {
 func TestEventsWithSelect(t *testing.T) {
 	done := make(chan bool)
 	s := &Socket{
-		events: make(map[string]chan string),
+		events: make(map[string]Event),
 		conn:   nil,
 		room:   nil,
 		emitCh: make(chan string),
@@ -86,7 +73,7 @@ func TestSocketJoin(t *testing.T) {
 	// Create room
 	room := NewRoom()
 	s := &Socket{
-		events: make(map[string]chan string),
+		events: make(map[string]Event),
 		conn:   nil,
 		room:   nil,
 		emitCh: make(chan string),

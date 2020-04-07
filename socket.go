@@ -2,28 +2,31 @@ package hux
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/gorilla/websocket"
 )
 
 // ConnReaderWriter :
-type ConnReaderWriter interface {
+type connReaderWriterCloser interface {
 	WriteMessage(int, []byte) error
 	ReadMessage() (int, []byte, error)
+	Close() error
 }
+
+// Event :
+type Event chan Message
 
 //Socket : Socket is a websocket conection handler
 type Socket struct {
-	events map[string]chan string
-	conn   ConnReaderWriter
+	events map[string]Event
+	conn   connReaderWriterCloser
 	emitCh chan string
 	room   *Room
 }
 
-func newSocket(c ConnReaderWriter) *Socket {
+func newSocket(c connReaderWriterCloser) *Socket {
 	s := &Socket{
-		events: make(map[string]chan string),
+		events: make(map[string]Event),
 		conn:   c,
 		emitCh: make(chan string),
 	}
@@ -46,7 +49,7 @@ func (s *Socket) run() {
 			if err != nil {
 				// if err not a connection close then log it.
 				if err != websocket.ErrCloseSent {
-					log.Println(ErrRead, err)
+					log.Println(ErrRead, msg, err)
 				}
 				break
 			}
@@ -66,7 +69,8 @@ func (s *Socket) handleClientMessage(rawStr string) error {
 		return err
 	}
 	ch := s.GetEvent(name)
-	ch <- message
+	var msg Message = newMessage(message)
+	ch <- msg
 	return nil
 }
 
@@ -87,24 +91,24 @@ func (s *Socket) LeaveRoom() {
 
 }
 
-//GetEvent : Return a event by given name. if event is not defined then define and return it
-func (s *Socket) GetEvent(name string) chan string {
+//GetEvent : Returns an event by given name. if event is not defined then defines and returns it
+func (s *Socket) GetEvent(name string) Event {
 	ch, ok := s.events[name]
 	if !ok {
-		s.events[name] = make(chan string)
+		s.events[name] = make(chan Message)
 		ch = s.events[name]
 	}
 	return ch
 }
 
 // Emit : Send a message to client.
-func (s *Socket) Emit(name string, data string) {
-	msg := stringifyMessage(name, data)
+func (s *Socket) Emit(name string, data interface{}) {
+	msg, _ := newSocketMessage(name, data).stringify()
 	s.emitCh <- msg
 }
 
 // Broadcast : Send message all clients except its client
-func (s *Socket) Broadcast(name string, data string) {
+func (s *Socket) Broadcast(name string, data interface{}) {
 	sl := s.room.sockets
 	for sck := range sl {
 		if sck != s {
@@ -115,21 +119,11 @@ func (s *Socket) Broadcast(name string, data string) {
 
 // Disconnect : Close connection
 func (s *Socket) Disconnect() {
+	s.conn.Close()
 	s.GetEvent("Disonnection") <- ""
 }
 
 func (s *Socket) readMessage() (string, error) {
 	_, msg, err := s.conn.ReadMessage()
 	return string(msg), err
-}
-
-// GenerateSocket :
-func GenerateSocket(w http.ResponseWriter, r *http.Request) (*Socket, error) {
-	conn, err := Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return nil, err
-	}
-	s := newSocket(conn)
-	return s, nil
-
 }

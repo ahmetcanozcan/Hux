@@ -12,7 +12,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./"))
 	http.Handle("/", fs)
 	http.HandleFunc("/ws/hux", func(w http.ResponseWriter, r *http.Request) {
-		socket, err := hux.GenerateSocket(w, r)
+		socket, err := hub.InstantiateSocket(w, r)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -21,9 +21,10 @@ func main() {
 		for {
 			select {
 			case msg := <-socket.GetEvent("Join"):
-				fmt.Println("Join:", msg)
-				hub.GetRoom(msg).Add(socket)
-				hub.GetRoom(msg).Emit("New", "NEW SOCKET CONNECTED.")
+				m := msg.String()
+				fmt.Println("Join:", m)
+				hub.GetRoom(m).Add(socket)
+				hub.GetRoom(m).Emit("New", "NEW SOCKET CONNECTED.")
 
 			}
 		}

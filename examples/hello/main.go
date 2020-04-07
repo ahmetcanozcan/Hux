@@ -7,22 +7,32 @@ import (
 	"github.com/ahmetcanozcan/hux"
 )
 
+type summer struct {
+	Nums []float32 `json:"nums"`
+}
+
 func main() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
-
-	http.HandleFunc("/ws/mux", func(w http.ResponseWriter, r *http.Request) {
+	hub := hux.NewHub()
+	http.HandleFunc("/ws/hux", func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("Socket connected.")
-		sck, _ := hux.GenerateSocket(w, r)
+		sck, _ := hub.InstantiateSocket(w, r)
 		for {
 			select {
 			case data := <-sck.GetEvent("Hello"):
-				fmt.Println(data)
+				s := data.String()
+				fmt.Println(s)
 				sck.Emit("Hello", "Hello There!")
 			case data := <-sck.GetEvent("Sum"):
-				fmt.Println("Get Sum event", data)
-				sck.Emit("Sum", "idk")
+				var s summer
+				data.ParseJSON(&s)
+				var sum float32 = 0
+				for _, num := range s.Nums {
+					sum += num
+				}
+				sck.Emit("Sum", sum)
 			}
 		}
 
